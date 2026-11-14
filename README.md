@@ -6,6 +6,8 @@ SpectrumLink 由两部分组成：安装到 F4HWN Labs v6.3.0 的只接收应用
 
 > Designed by [鸽子TechLife](https://v.douyin.com/llSXBPzpKzI/) · Website [鸽子窝](https://www.lishuangtong.com) · Version `v3.7.7`
 
+![SpectrumLink UV-K1 全景仪表台](docs/images/spectrumlink-dashboard.png)
+
 ## 主要功能
 
 - UV-K1/K1(8) 原生 USB-C + Web Serial 连接，64 点 RSSI 扫描。
