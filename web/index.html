@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#050604" />
+    <title data-i18n="app.title">SpectrumLink · UV-K1 全景仪表台</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="./vendor/maplibre/maplibre-gl.css" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "./vendor/three.module.js",
+          "three/addons/": "./vendor/addons/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div class="dashboard-shell">
+      <header class="topbar">
+        <div class="identity-card">
+          <div class="avatar-frame">
+            <img id="avatarImage" alt="操作员头像" /><span id="avatarFallback"
+              >SL</span
+            >
+          </div>
+          <div class="identity-copy">
+            <span class="micro-label">RADIO OPERATOR</span
+            ><strong id="nicknameReadout">RADIO OPERATOR</strong>
+            <p id="sloganReadout" class="identity-slogan">无线电与航空爱好者</p>
+            <div class="callsigns">
+              <span id="secondaryCallsign">UV-K1 LAB</span>
+            </div>
+          </div>
+          <div id="locationReadout" class="location-readout">太原</div>
+        </div>
+        <div class="frequency-deck" aria-live="polite">
+          <div class="frequency-readouts">
+            <div class="connection-stack">
+              <span class="status-chip"><i id="stateDot"></i><b id="stateText">未连接</b></span>
+              <span id="rxActivity" class="rx-activity" aria-live="polite">
+                <b data-i18n="rf.active">RX ACTIVE</b>
+                <span id="rxActivityFrequency">--.---- MHz</span>
+                <time id="rxActivityDuration">0.0 s</time>
+              </span>
+            </div>
+            <div>
+              <small>中心频率</small
+              ><strong id="centerReadout">145.5000 <em>MHz</em></strong>
+            </div>
+            <div>
+              <small>峰值信号</small
+              ><strong id="peakReadout">-- <em>dBm</em></strong>
+            </div>
+            <div class="minor-readout">
+              <small>跨度 / 速率</small
+              ><b
+                ><span id="spanReadout">400 kHz</span> ·
+                <span id="rateReadout">0.0/s</span></b
+              >
+            </div>
+          </div>
+          <div class="top-digital-meter-pane">
+            <canvas id="digitalMeter" aria-label="数字信号表"></canvas>
+          </div>
+        </div>
+        <div class="top-actions">
+          <button
+            id="fullscreenBtn"
+            class="icon-btn"
+            title="全屏"
+            aria-label="全屏"
+            data-i18n-title="fullscreen.enter"
+            data-i18n-aria="fullscreen.enter"
+          >
+            ⛶</button
+          ><button
+            id="settingsBtn"
+            class="icon-btn"
+            title="打开设置"
+            aria-label="打开设置"
+            data-i18n-title="settings.open"
+            data-i18n-aria="settings.open"
+          >
+            ☰
+          </button>
+        </div>
+      </header>
+
+      <main id="dashboardCanvas" class="dashboard-canvas">
+        <article
+          class="module digital-module profile-module"
+          data-module="digital"
+        >
+          <div class="module-title profile-drag-handle">
+            <span>CALLSIGN · 拖动</span>
+          </div>
+          <div class="profile-display">
+            <strong class="profile-callsign" id="primaryCallsign"
+              >CALLSIGN</strong
+            >
+          </div>
+        </article>
+        <article class="module contacts-module" data-module="contacts">
+          <div class="module-title inline">
+            <div><span>RF LOG · <i data-i18n="modules.drag">拖动</i></span><b data-i18n="modules.contacts">无线电日志</b></div>
+            <div class="contact-title-actions">
+              <nav class="contact-tabs" aria-label="日志类型">
+                <button id="qsoTabBtn" type="button" class="active" data-i18n="rf.qsoTab">最近通联</button>
+                <button id="rfEventsTabBtn" type="button" data-i18n="rf.eventsTab">RF 事件</button>
+              </nav>
+              <button id="addContactBtn" type="button" aria-label="新增通联记录">＋</button>
+            </div>
+          </div>
+          <div id="recentContacts" class="contact-viewport" aria-live="off"></div>
+          <div id="rfEvents" class="contact-viewport rf-event-viewport" aria-live="polite" hidden></div>
+        </article>
+        <article class="module analog-module" data-module="analog">
+          <div class="module-title inline">
+            <div><span>SIGNAL · 拖动</span></div>
+          </div>
+          <div class="analog-meter-pane">
+            <canvas id="analogMeter" aria-label="机械信号表"></canvas>
+          </div>
+        </article>
+        <article
+          class="module terrain-module integrated-module"
+          data-module="terrain"
+        >
+          <div class="module-title inline">
+            <div>
+              <span>PERSPECTIVE HISTORY · <i data-i18n="modules.drag">拖动</i></span><b data-i18n="modules.terrain">三维频谱地形</b>
+            </div>
+            <div class="terrain-legend"><i></i><span data-i18n="modules.noise">噪声底</span> <i></i><span data-i18n="modules.strong">强信号</span></div>
+          </div>
+          <canvas id="spectrum3d" aria-label="三维频谱历史"></canvas>
+          <div class="cursor-pill" id="cursorReadout" data-i18n="modules.chooseFrequency">
+            点击瀑布图选择监听频率
+          </div>
+        </article>
+        <article class="module mini-spectrum live-module" data-module="live">
+          <div class="module-title inline">
+            <div><span>LIVE TRACE · <i data-i18n="modules.drag">拖动</i></span><b data-i18n="modules.live">实时频谱</b></div>
+            <small>64 BINS</small>
+          </div>
+          <canvas id="spectrum2d" aria-label="实时二维频谱"></canvas>
+        </article>
+        <article
+          class="module mini-spectrum waterfall-module"
+          data-module="waterfall"
+        >
+          <div class="module-title inline">
+            <div><span>TIME HISTORY · <i data-i18n="modules.drag">拖动</i></span><b data-i18n="modules.waterfall">瀑布图</b></div>
+            <small>TIME ↑</small>
+          </div>
+          <canvas id="waterfall" aria-label="频谱瀑布图"></canvas>
+        </article>
+        <aside class="module radar-module" data-module="radar">
+          <div class="module-title inline">
+            <div><span>NETWORK ADS-B · <i data-i18n="modules.drag">拖动</i></span><b data-i18n="radar.nearby">附近飞机雷达</b></div>
+            <span id="radarSource" class="source-badge" data-i18n="radar.preparing">准备中</span>
+          </div>
+          <div class="radar-canvas-wrap">
+            <canvas id="radarCanvas" aria-label="附近飞机雷达"></canvas
+            ><span class="north-mark">N</span>
+          </div>
+          <section
+            id="aircraftShowcase"
+            class="aircraft-showcase"
+            data-focus-panel="aircraft"
+            aria-live="polite"
+          >
+            <div class="aircraft-showcase-copy">
+              <div class="showcase-heading">
+                <div>
+                  <strong id="showcaseCallsign" data-i18n="aircraft.waiting">等待航班</strong
+                  ><span id="showcaseType" data-i18n="aircraft.carousel">实时轮播</span>
+                </div>
+                <div class="showcase-actions">
+                  <button id="aircraftMoreBtn" type="button" data-i18n="aircraft.details">详情</button>
+                  <button class="panel-focus-btn" data-focus-toggle type="button">⛶</button>
+                </div>
+              </div>
+              <div id="showcaseFacts" class="showcase-facts"></div>
+            </div>
+            <div id="aircraftModelStage" class="aircraft-model-stage" data-terrain-mode="open3d">
+              <div
+                id="aircraftTerrainMap"
+                class="aircraft-terrain-map"
+                aria-label="太原实景三维地形"
+              ></div>
+              <canvas
+                id="aircraftModel3d"
+                aria-label="当前飞机三维模型，可拖动旋转"
+              ></canvas>
+              <span id="activeModelCredit">WEBGL REAL 3D · 可拖动查看</span>
+              <div class="aircraft-inset-radar">
+                <canvas id="aircraftInsetRadar" aria-label="太原附近航迹定位"></canvas>
+                <span>太原实时航迹</span>
+              </div>
+            </div>
+            <div class="carousel-progress"><i id="carouselProgress"></i></div>
+          </section>
+          <section class="aircraft-carousel-panel" data-focus-panel="flights">
+            <button class="panel-focus-btn" data-focus-toggle type="button">⛶</button>
+            <nav
+              id="aircraftCarousel"
+              class="aircraft-carousel"
+              aria-label="附近飞机轮播"
+            ></nav>
+          </section>
+          <footer id="airspaceSummary" class="airspace-summary" aria-live="polite">
+            <span><i data-i18n="airspace.nearby">附近</i><b id="airspaceCount">--</b></span>
+            <span><i data-i18n="airspace.nearest">最近</i><b id="airspaceNearest">等待数据</b></span>
+            <span class="airspace-highest"><i data-i18n="airspace.highest">最高</i><b id="airspaceHighest">-- ft</b></span>
+            <span><i data-i18n="airspace.latency">延迟</i><b id="airspaceLatency">--</b></span>
+            <time id="airspaceUpdated">等待更新</time>
+          </footer>
+        </aside>
+      </main>
+    </div>
+
+    <div id="contactEditorModal" class="qso-editor-backdrop" aria-hidden="true">
+      <form id="contactEditorForm" class="qso-editor" role="dialog" aria-modal="true" aria-labelledby="contactEditorTitle">
+        <header><div><span>QSO LOG</span><h2 id="contactEditorTitle" data-i18n="qso.edit">编辑通联</h2></div><button id="closeContactEditorBtn" type="button" aria-label="关闭">×</button></header>
+        <div class="qso-editor-fields">
+          <label><span data-i18n="qso.date">日期</span><input id="contactDateInput" type="date" required /></label>
+          <label><span data-i18n="qso.time">时间</span><input id="contactTimeInput" type="time" required /></label>
+          <label><span data-i18n="qso.callsign">呼号</span><input id="contactCallsignInput" maxlength="12" autocomplete="off" required /></label>
+          <label>QTH<input id="contactQthInput" maxlength="24" autocomplete="off" required /></label>
+        </div>
+        <footer><button id="deleteContactBtn" type="button" class="danger" data-i18n="qso.delete">删除</button><span></span><button id="cancelContactBtn" type="button" data-i18n="qso.cancel">取消</button><button id="saveContactBtn" type="submit" class="primary" data-i18n="qso.save">保存</button></footer>
+      </form>
+    </div>
+
+    <div id="drawerBackdrop" class="drawer-backdrop" hidden></div>
+    <aside
+      id="settingsDrawer"
+      class="settings-drawer"
+      aria-hidden="true"
+      aria-label="SpectrumLink 设置"
+    >
+      <header>
+        <div>
+          <span>CONTROL & CUSTOMIZE</span>
+          <h2 data-i18n="settings.title">仪表台设置</h2>
+        </div>
+        <button id="closeSettingsBtn" class="icon-btn" aria-label="关闭设置">
+          ×
+        </button>
+      </header>
+      <div class="drawer-scroll">
+        <section class="settings-section language-settings">
+          <h3 data-i18n="language.name">语言</h3>
+          <select id="languageInput" aria-label="语言"></select>
+          <p data-i18n="language.hint">切换后立即生效，并会记住你的选择。</p>
+        </section>
+        <section class="settings-section">
+          <h3 data-i18n="connection.title">电台连接</h3>
+          <div class="button-row">
+            <button id="connectBtn" class="primary" data-i18n="connection.connect">连接 K1</button
+            ><button id="demoBtn" data-i18n="connection.demo">演示</button
+            ><button id="disconnectBtn" disabled data-i18n="connection.disconnect">断开</button>
+          </div>
+          <p id="pendingText" data-i18n="connection.localStandby">本地待机</p>
+          <p id="compatibility">Chrome / Edge Web Serial</p>
+        </section>
+        <section class="settings-section">
+          <h3 data-i18n="scan.title">扫描控制</h3>
+          <div class="button-row">
+            <button id="pauseBtn" disabled data-i18n="scan.pause">暂停</button
+            ><button id="clearBtn" data-i18n="scan.clear">清空历史</button>
+          </div>
+          <label
+            ><span data-i18n="scan.center">中心频率 MHz</span>
+            <div class="frequency-input">
+              <button id="centerDown" disabled>−</button
+              ><input
+                id="centerInput"
+                inputmode="decimal"
+                value="145.5000"
+              /><button id="centerUp" disabled>＋</button>
+            </div></label
+          >
+          <fieldset>
+            <legend data-i18n="scan.span">扫描跨度</legend>
+            <div class="segmented" id="spanButtons">
+              <button data-span="400000" class="active" disabled>400K</button
+              ><button data-span="800000" disabled>800K</button
+              ><button data-span="1600000" disabled>1.6M</button
+              ><button data-span="3200000" disabled>3.2M</button>
+            </div>
+          </fieldset>
+          <p><span data-i18n="scan.selected">所选频率：</span><b id="selectedFrequency" data-i18n="scan.none">未选择</b></p>
+          <div class="button-row">
+            <button id="monitorBtn" class="accent" disabled data-i18n="scan.monitor">监听所选频率</button
+            ><button id="stopMonitorBtn" disabled data-i18n="scan.stopMonitor">停止监听</button>
+          </div>
+        </section>
+        <section class="settings-section">
+          <h3 data-i18n="charts.title">图表显示</h3>
+          <label
+            >历史深度 <output id="depthOut">192</output
+            ><input
+              id="depthInput"
+              type="range"
+              min="24"
+              max="256"
+              value="192" /></label
+          ><label
+            >色彩增益 <output id="gainOut">1.0×</output
+            ><input
+              id="gainInput"
+              type="range"
+              min="50"
+              max="180"
+              value="100" /></label
+          ><label
+            >垂直高度 <output id="verticalOut">1.0×</output
+            ><input
+              id="verticalInput"
+              type="range"
+              min="50"
+              max="180"
+              value="100"
+          /></label>
+          <div class="toggle-row">
+            <label
+              ><input id="autoScale" type="checkbox" checked /> 自动刻度</label
+            ><label
+              ><input id="peakHold" type="checkbox" checked /> 峰值保持</label
+            >
+          </div>
+          <label><span data-i18n="rf.sensitivity">RF 活动灵敏度</span> <output id="signalThresholdOut">12 dB</output>
+            <input id="signalThresholdInput" type="range" min="6" max="30" step="1" value="12" />
+          </label>
+          <p data-i18n="rf.sensitivityHint">超过自适应噪声底的门限；数值越大越不容易误报。</p>
+        </section>
+        <section class="settings-section">
+          <h3 data-i18n="identity.title">身份信息</h3>
+          <div class="form-grid">
+            <label><span data-i18n="identity.nickname">网名</span><input id="nicknameInput" maxlength="24" /></label
+            ><label><span data-i18n="identity.city">所在城市</span><input id="locationInput" maxlength="16" /></label
+            ><label
+              ><span data-i18n="identity.primaryCallsign">主呼号</span><input id="callsignPrimaryInput" maxlength="12" /></label
+            ><label
+              ><span data-i18n="identity.callsignColor">呼号颜色</span><input
+                id="callsignColorInput"
+                type="color"
+                value="#ffad2f" /></label
+            ><label
+              ><span data-i18n="identity.cityColor">城市颜色</span><input
+                id="locationColorInput"
+                type="color"
+                value="#ffad2f" /></label
+            ><label
+              ><span data-i18n="identity.callsignSize">呼号大小</span><input
+                id="callsignSizeInput"
+                type="range"
+                min="32"
+                max="88"
+                value="54" /></label
+            ><label
+              ><span data-i18n="identity.citySize">城市大小</span><input
+                id="locationSizeInput"
+                type="range"
+                min="12"
+                max="32"
+                value="16" /></label
+            ><label
+              ><span data-i18n="identity.secondaryCallsign">第二呼号（可留空）</span><input
+                id="callsignSecondaryInput"
+                maxlength="18" /></label
+            ><label
+              ><span data-i18n="identity.avatar">头像</span><input
+                id="avatarInput"
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+            /></label>
+          </div>
+          <label
+            ><span data-i18n="identity.slogan">个性 Slogan</span><textarea id="bioInput" maxlength="80" rows="3"></textarea>
+          </label>
+        </section>
+        <section class="settings-section">
+          <h3 data-i18n="radar.title">飞机雷达</h3>
+          <div class="form-grid">
+            <label><span data-i18n="radar.latitude">纬度</span><input id="latitudeInput" inputmode="decimal" /></label
+            ><label><span data-i18n="radar.longitude">经度</span><input id="longitudeInput" inputmode="decimal" /></label
+            ><label
+              ><span data-i18n="radar.radius">半径（海里）</span><input
+                id="radarRadiusInput"
+                type="number"
+                min="5"
+                max="250" /></label
+            ><button id="useLocationBtn" data-i18n="radar.useLocation">使用当前位置</button>
+          </div>
+          <label><span data-i18n="radar.terrainSource">三维地形来源</span>
+            <select id="terrainModeInput">
+              <option value="local3d" data-i18n="radar.local3d">本地 3D 地形（无需网络）</option>
+              <option value="open3d" data-i18n="radar.open3d">在线开源 3D（无需密钥）</option>
+              <option value="flat2d" data-i18n="radar.flat2d">二维卫星后备</option>
+            </select>
+          </label>
+          <p data-i18n="radar.notice">雷达来自网络 ADS-B，不是 K1 解码结果。</p>
+          <details class="source-credit">
+            <summary>开源与数据来源</summary>
+            <p>航空器数据：adsb.lol / adsb.fi · 机型与航线：ADSBDB</p>
+            <p>三维模型：
+              <a href="https://github.com/amvlab/aircraft-models" target="_blank" rel="noreferrer">AMV Lab · CC BY 4.0</a> /
+              <a href="https://github.com/bilawalsidhu/gods-eye-view" target="_blank" rel="noreferrer">God’s Eye View · CC BY 4.0</a> /
+              <a href="https://github.com/Flightradar24/fr24-3d-models" target="_blank" rel="noreferrer">FR24 3D models · GPLv2</a>
+            </p>
+          </details>
+        </section>
+        <section class="settings-section">
+          <h3 data-i18n="layout.title">布局与导出</h3>
+          <div class="button-row">
+            <button id="resetLayoutBtn" data-i18n="layout.reset">恢复默认布局</button
+            ><button id="screenshotBtn" data-i18n="layout.screenshot">导出截图</button
+            ><button id="diagnosticsBtn" data-i18n="layout.diagnostics">诊断信息</button>
+          </div>
+          <div class="button-row save-row">
+            <button id="saveSettingsBtn" class="primary" data-i18n="settings.save">保存个性化</button>
+          </div>
+        </section>
+      </div>
+      <footer class="author-credit">
+        Designed by： <a href="https://v.douyin.com/llSXBPzpKzI/" target="_blank" rel="noreferrer">鸽子TechLife</a>
+        · Website： <a href="https://www.lishuangtong.com" target="_blank" rel="noreferrer">鸽子窝</a>
+        · Version：v3.7.7
+      </footer>
+    </aside>
+    <div
+      id="aircraftModalBackdrop"
+      class="aircraft-modal-backdrop"
+      hidden
+    ></div>
+    <section
+      id="aircraftModal"
+      class="aircraft-modal"
+      aria-hidden="true"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="aircraftModalTitle"
+    >
+      <header>
+        <div>
+          <span>REAL-TIME AIRCRAFT DETAIL</span>
+          <h2 id="aircraftModalTitle" data-i18n="aircraft.detailTitle">航班详情</h2>
+        </div>
+        <button
+          id="closeAircraftModalBtn"
+          class="icon-btn"
+          aria-label="关闭航班详情"
+        >
+          ×
+        </button>
+      </header>
+      <div class="aircraft-modal-body">
+        <div id="aircraftDetailGrid" class="aircraft-detail-grid"></div>
+        <p id="aircraftDetailStatus" data-i18n="aircraft.loading">正在读取航班资料…</p>
+      </div>
+      <footer>实时位置：adsb.lol / adsb.fi · 机型与航线：ADSBDB</footer>
+    </section>
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>

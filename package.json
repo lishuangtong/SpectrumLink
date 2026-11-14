@@ -1,0 +1,41 @@
+{
+  "name": "spectrumlink",
+  "version": "3.7.7",
+  "description": "UV-K1/K1(8) 64-point RSSI spectrum dashboard with Web Serial, waterfall, 3D history and independent ADS-B visualization.",
+  "private": true,
+  "license": "GPL-2.0-or-later",
+  "author": {
+    "name": "鸽子TechLife",
+    "url": "https://www.lishuangtong.com"
+  },
+  "homepage": "https://www.lishuangtong.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lishuangtong/SpectrumLink.git"
+  },
+  "bugs": {
+    "url": "https://github.com/lishuangtong/SpectrumLink/issues"
+  },
+  "keywords": [
+    "quansheng",
+    "uv-k1",
+    "ham-radio",
+    "spectrum-analyzer",
+    "web-serial",
+    "ads-b"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"tests/**/*.test.mjs\"",
+    "serve": "node scripts/serve.mjs",
+    "build:app": "bash scripts/build-app.sh"
+  },
+  "dependencies": {
+    "gltf-pipeline": "4.3.1",
+    "maplibre-gl": "^6.16.0",
+    "three": "0.187.0"
+  }
+}

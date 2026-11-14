@@ -1,0 +1,66 @@
+SpectrumLink v3.7.7
+Copyright (C) 2026 鸽子TechLife
+Website: https://www.lishuangtong.com
+
+SpectrumLink original source code is distributed under GPL-2.0-or-later.
+This repository also uses or interoperates with the following independent
+third-party works. Their original copyright notices and license terms remain
+in force; inclusion here does not relicense them.
+
+F4HWN UV-K1/K5 custom firmware v6.3.0
+Source: https://github.com/armel/uv-k1-k5v3-firmware-custom
+License: Apache License 2.0
+SpectrumLink downloads the pinned upstream source at build time and compiles
+an overlay application against its public app API.
+
+FR24 3D Models
+Source: https://github.com/Flightradar24/fr24-3d-models
+License: GNU GPL v2
+SpectrumLink may load selected aircraft models on demand. A copy of the GPL
+v2 license is stored at web/assets/licenses/FR24-3D-MODELS-GPL-2.0.txt.
+
+AMV Lab Aircraft Models
+Source: https://github.com/amvlab/aircraft-models
+License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+SpectrumLink uses logo-free GLB variants. Attribution details are stored at
+web/assets/licenses/AMVLAB-CC-BY-4.0.txt.
+
+God's Eye View Aircraft Models
+Source: https://github.com/bilawalsidhu/gods-eye-view
+License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+Creator and per-model credits are linked from
+web/assets/licenses/GODS-EYE-VIEW-MODELS-CC-BY-4.0.txt.
+
+Three.js 0.187.0
+Copyright (C) 2010-2026 Three.js Authors
+Source: https://github.com/mrdoob/three.js
+License: MIT
+SpectrumLink vendors the ES module and selected official loaders/utilities.
+
+MapLibre GL JS 6.16.0
+Copyright (c) 2023 MapLibre contributors and other listed contributors
+Source: https://github.com/maplibre/maplibre-gl-js
+License: BSD-3-Clause with bundled third-party notices
+The full notice is stored at web/vendor/maplibre/LICENSE.txt.
+
+Cesium gltf-pipeline 4.3.1
+Source: https://github.com/CesiumGS/gltf-pipeline
+License: Apache License 2.0
+Used by the local server to normalize compatible GLB assets.
+
+Mapterhorn elevation tiles
+Source: https://mapterhorn.com/
+Used as an online terrain source. Follow the provider's current attribution
+and usage terms when redistributing cached data.
+
+NASA GIBS / Blue Marble imagery
+Source: https://earthdata.nasa.gov/eosdis/science-system-description/eosdis-components/gibs
+NASA content is generally not subject to copyright in the United States;
+NASA identifiers and third-party content remain subject to their own rules.
+
+ADS-B data providers
+Sources: https://adsb.lol/ and https://adsb.fi/
+Aircraft metadata: https://www.adsbdb.com/
+These are network data services, not bundled datasets. Their availability,
+accuracy, privacy policies and current terms are controlled by their
+respective operators.

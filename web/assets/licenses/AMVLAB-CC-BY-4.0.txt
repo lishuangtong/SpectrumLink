@@ -1,0 +1,4 @@
+AMV Lab aircraft models are licensed under Creative Commons Attribution 4.0 International.
+Source: https://github.com/amvlab/aircraft-models
+License: https://creativecommons.org/licenses/by/4.0/
+SpectrumLink uses the logo-free GLB variants without modifying the source files.

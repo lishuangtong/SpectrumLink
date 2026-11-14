@@ -1,0 +1,15 @@
+.cache/
+.superpowers/
+.DS_Store
+.env
+.env.*
+!.env.example
+node_modules/
+coverage/
+radio/**/*.elf
+radio/**/*.bin
+radio/**/*.map
+radio/**/*.app
+dist/*
+!dist/.gitkeep
+

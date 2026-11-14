@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 安全漏洞私下报告
+    url: https://www.lishuangtong.com
+    about: 请不要公开未修复的安全问题，先联系维护者。

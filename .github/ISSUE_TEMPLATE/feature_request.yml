@@ -1,0 +1,40 @@
+name: 功能建议
+description: 提议一个有明确使用场景的新能力或改进
+title: "[Feature] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 要解决的问题
+      description: 请描述目标和真实使用场景，不要只写解决方案名称。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 建议方案
+      description: 说明界面、数据来源和预期行为。
+    validations:
+      required: true
+  - type: dropdown
+    id: hardware
+    attributes:
+      label: 是否需要改变电台端
+      options:
+        - 否，只修改电脑网页
+        - 是，仍为只接收功能
+        - 不确定
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: 法规、安全、隐私与第三方许可证影响
+  - type: checkboxes
+    id: truthfulness
+    attributes:
+      label: 数据真实性
+      options:
+        - label: 我理解 64 点 RSSI 不是 I/Q、FFT 或数字音频。
+          required: true

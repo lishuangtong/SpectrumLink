@@ -1,0 +1,4 @@
+The aircraft model files sourced from God's Eye View remain under their individual CC BY 4.0 licenses.
+Source and creator credits: https://github.com/bilawalsidhu/gods-eye-view/blob/main/public/models/README.md
+License: https://creativecommons.org/licenses/by/4.0/
+SpectrumLink loads the optimized GLB files without modifying the source files.
