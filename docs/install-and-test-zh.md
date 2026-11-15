@@ -26,12 +26,29 @@
 
 ## 启动网页
 
-双击 `start.command`。若 macOS 第一次阻止打开，可在终端运行：
+先确保已安装 Node.js 20 或更高版本。在项目目录执行：
 
 ```bash
-cd "/你的路径/spectrumlink"
+npm ci
 ./start.command
 ```
+
+### macOS 拦截 `start.command`
+
+如果从 GitHub 的“源代码 ZIP”下载项目，macOS 可能显示“Apple 无法验证 `start.command` 是否包含恶意软件”。这是 Gatekeeper 对网络下载、未经 Apple Developer ID 签名和公证的脚本所做的首次启动拦截，不代表源代码已损坏。
+
+打开“终端”，输入 `cd `（后面保留一个空格），将解压后的 SpectrumLink 文件夹拖入终端，按回车。确认终端已位于该项目文件夹后，再执行：
+
+```bash
+xattr -dr com.apple.quarantine .
+chmod +x start.command
+npm ci
+./start.command
+```
+
+`xattr` 命令只应对从本项目官方 GitHub 仓库下载的特定 SpectrumLink 文件夹执行；不要对整个“下载”目录或用户目录执行。解除该文件夹的隔离标记后，以后可以直接双击 `start.command`。
+
+> 注意：Releases 中的 `SpectrumLink-v3.7.7.zip` 是安装到 K1 的 UV Studio 应用包；电脑端网页、本地服务和 `start.command` 位于 GitHub 自动生成的“源代码 ZIP”中。
 
 也可以打开右上角 **☰ 设置**，先点 **演示**，无需连接 K1 即可检查机械表、数字表、二维频谱、瀑布图和三维地形。
 

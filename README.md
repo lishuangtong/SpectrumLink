@@ -44,6 +44,23 @@ npm run serve
 
 然后用 Chrome 或 Edge 打开 `http://127.0.0.1:8765`。macOS 也可以直接双击 `start.command`。
 
+### macOS 首次打开提示“Apple 无法验证”
+
+GitHub 自动生成的“源代码 ZIP”属于网络下载文件。macOS 会为其添加隔离标记，而 `start.command` 没有经过 Apple Developer ID 签名与公证，因此首次双击可能被 Gatekeeper 拦截。这不代表源代码已损坏。
+
+在终端输入 `cd `（`cd` 后保留一个空格），把解压后的 `SpectrumLink-3.7.7` 文件夹拖入终端，回车后执行：
+
+```bash
+xattr -dr com.apple.quarantine .
+chmod +x start.command
+npm ci
+./start.command
+```
+
+只对从本项目官方 GitHub 仓库下载的特定文件夹执行上述 `xattr` 命令，不要对整个“下载”目录或用户目录执行。如果提示 `npm: command not found`，请先安装 Node.js 20 或更高版本。
+
+Releases 中的 `SpectrumLink-v3.7.7.zip` 仅包含用于 UV Studio 的 K1 端 `SpectrumLink.app`；要在电脑上运行网页仪表台，请下载并解压 GitHub 的“源代码 ZIP”。
+
 不连接电台时，可在右上角菜单中启用“演示”检查界面。连接实机、安装应用、备份与恢复步骤见[中文安装与实机测试指南](docs/install-and-test-zh.md)。
 
 ## 构建 K1 应用
