@@ -1,0 +1,31 @@
+name: spectrumlink
+
+services:
+  spectrumlink:
+    image: ghcr.io/lishuangtong/spectrumlink:${SPECTRUMLINK_VERSION:-3.8.0}
+    restart: unless-stopped
+    init: true
+    ports:
+      - "${SPECTRUMLINK_BIND_IP:-127.0.0.1}:${SPECTRUMLINK_PORT:-8765}:8765"
+    environment:
+      NODE_ENV: production
+      SPECTRUMLINK_HOST: 0.0.0.0
+      SPECTRUMLINK_PORT: 8765
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8765/healthz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"

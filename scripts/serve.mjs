@@ -20,6 +20,26 @@ async function fetchJson(fetchFn, endpoint) {
   return upstream.json();
 }
 
+export function resolveListenOptions(env = process.env) {
+  const allowedHosts = new Set(['127.0.0.1', '0.0.0.0', '::', 'localhost']);
+  const requestedHost = String(env.SPECTRUMLINK_HOST || '127.0.0.1').trim();
+  const requestedPort = Number(env.SPECTRUMLINK_PORT || 8765);
+  return {
+    host: allowedHosts.has(requestedHost) ? requestedHost : '127.0.0.1',
+    port: Number.isInteger(requestedPort) && requestedPort >= 1 && requestedPort <= 65535 ? requestedPort : 8765,
+  };
+}
+
+function requestOrigin(request) {
+  const forwardedProto = String(request.headers['x-forwarded-proto'] || '').split(',')[0].trim().toLowerCase();
+  const protocol = forwardedProto === 'https' ? 'https' : 'http';
+  const forwardedHost = String(request.headers['x-forwarded-host'] || '').split(',')[0].trim();
+  const directHost = String(request.headers.host || '127.0.0.1:8765').trim();
+  const safeHost = (value) => /^(?:[a-z0-9.-]+|\[[0-9a-f:]+\])(?::\d{1,5})?$/i.test(value);
+  const host = safeHost(forwardedHost) ? forwardedHost : (safeHost(directHost) ? directHost : '127.0.0.1:8765');
+  return `${protocol}://${host}`;
+}
+
 export function createSpectrumServer({ fetchFn = globalThis.fetch, root = defaultRoot } = {}) {
   const modelCache = new Map();
   const terrainCache = new Map();
@@ -108,12 +128,15 @@ export function createSpectrumServer({ fetchFn = globalThis.fetch, root = defaul
   };
   return createServer(async (request, response) => {
     const url = new URL(request.url, 'http://localhost');
+    if (url.pathname === '/healthz') {
+      json(response, 200, { status: 'ok', service: 'spectrumlink' });
+      return;
+    }
     if (url.pathname === '/api/terrain/tilejson.json') {
-      const host = request.headers.host || '127.0.0.1:8765';
       json(response, 200, {
         tilejson: '3.0.0',
         scheme: 'xyz',
-        tiles: [`http://${host}/api/terrain/{z}/{x}/{y}.webp`],
+        tiles: [`${requestOrigin(request)}/api/terrain/{z}/{x}/{y}.webp`],
         attribution: 'Terrain: Mapterhorn open elevation tiles',
         bounds: [-180, -85.0511287, 180, 85.0511287],
         center: [112.517125, 37.825044, 8],
@@ -263,8 +286,8 @@ export function createSpectrumServer({ fetchFn = globalThis.fetch, root = defaul
 
 const isEntry = process.argv[1] && fileURLToPath(import.meta.url) === normalize(process.argv[1]);
 if (isEntry) {
-  const port = Number(process.env.SPECTRUMLINK_PORT || 8765);
+  const { host, port } = resolveListenOptions();
   const server = createSpectrumServer();
-  server.listen(port, '127.0.0.1', () => console.log(`SpectrumLink: http://127.0.0.1:${port}`));
+  server.listen(port, host, () => console.log(`SpectrumLink: http://${host}:${port}`));
 }
 

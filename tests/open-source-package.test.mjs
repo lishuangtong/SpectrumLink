@@ -5,10 +5,23 @@ import test from 'node:test';
 
 const root = new URL('../', import.meta.url);
 
+async function readOptional(path) {
+  try {
+    return await readFile(new URL(path, root), 'utf8');
+  } catch {
+    return '';
+  }
+}
+
 test('package metadata identifies the public release without enabling npm publication', async () => {
   const pkg = JSON.parse(await readFile(new URL('package.json', root), 'utf8'));
+  const [dashboard, notice, security] = await Promise.all([
+    readFile(new URL('web/index.html', root), 'utf8'),
+    readFile(new URL('NOTICE', root), 'utf8'),
+    readFile(new URL('SECURITY.md', root), 'utf8'),
+  ]);
 
-  assert.equal(pkg.version, '3.7.7');
+  assert.equal(pkg.version, '3.8.0');
   assert.equal(pkg.license, 'GPL-2.0-or-later');
   assert.equal(pkg.private, true);
   assert.match(pkg.description, /UV-K1/i);
@@ -19,6 +32,9 @@ test('package metadata identifies the public release without enabling npm public
   });
   assert.equal(pkg.bugs.url, 'https://github.com/lishuangtong/SpectrumLink/issues');
   assert.deepEqual(pkg.engines, { node: '>=20' });
+  assert.match(dashboard, /Version：v3\.8\.0/);
+  assert.match(notice, /SpectrumLink v3\.8\.0/);
+  assert.match(security, /v3\.8\.0/);
 });
 
 test('local metadata, credentials, dependencies and compiled apps stay outside Git', () => {
@@ -64,7 +80,7 @@ test('public release includes licensing, attribution, contribution and safety do
 test('README identifies the author and states the radio and ADS-B boundaries', async () => {
   const readme = await readFile(new URL('README.md', root), 'utf8');
 
-  assert.match(readme, /v3\.7\.7/);
+  assert.match(readme, /v3\.8\.0/);
   assert.match(readme, /鸽子TechLife/);
   assert.match(readme, /https:\/\/www\.lishuangtong\.com/);
   assert.match(readme, /64 点 RSSI/);
@@ -90,4 +106,33 @@ test('GitHub automation tests a clean firmware build and offers structured repor
   assert.match(feature, /问题|目标/);
   assert.match(config, /blank_issues_enabled: false/);
   assert.match(pullRequest, /npm test/);
+});
+
+test('public repository ships a secure one-click Docker deployment for Baota, NAS and Linux', async () => {
+  const [dockerfile, compose, dockerignore, install, update, guide, workflow] = await Promise.all([
+    readOptional('Dockerfile'),
+    readOptional('compose.yaml'),
+    readOptional('.dockerignore'),
+    readOptional('deploy/install.sh'),
+    readOptional('deploy/update.sh'),
+    readOptional('docs/deploy-baota-nas.md'),
+    readOptional('.github/workflows/container.yml'),
+  ]);
+
+  assert.match(dockerfile, /npm ci --omit=dev/);
+  assert.match(dockerfile, /USER node/);
+  assert.match(dockerfile, /HEALTHCHECK/);
+  assert.match(compose, /ghcr\.io\/lishuangtong\/spectrumlink/);
+  assert.match(compose, /read_only:\s*true/);
+  assert.match(compose, /no-new-privileges:true/);
+  assert.match(compose, /cap_drop:[\s\S]*ALL/);
+  assert.match(dockerignore, /node_modules/);
+  assert.match(install, /docker compose/);
+  assert.match(update, /docker compose pull/);
+  assert.match(guide, /宝塔/);
+  assert.match(guide, /NAS/);
+  assert.match(guide, /HTTPS/);
+  assert.match(guide, /Web Serial/);
+  assert.match(workflow, /linux\/amd64,linux\/arm64/);
+  assert.match(workflow, /packages: write/);
 });

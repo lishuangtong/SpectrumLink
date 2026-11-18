@@ -2,7 +2,10 @@ import assert from 'node:assert/strict';
 import { once } from 'node:events';
 import test from 'node:test';
 
-import { createSpectrumServer } from '../scripts/serve.mjs';
+import * as serverModule from '../scripts/serve.mjs';
+
+const { createSpectrumServer } = serverModule;
+const resolveListenOptions = serverModule.resolveListenOptions || (() => undefined);
 
 function legacyGlbFixture() {
   const json = JSON.stringify({ asset: { version: '1.0' }, scene: 'scene0', scenes: { scene0: { nodes: [] } }, nodes: {} });
@@ -36,6 +39,28 @@ async function withServer(fetchFn, fn) {
     await once(server, 'close');
   }
 }
+
+test('container deployment can bind every interface without changing the safe local default', () => {
+  assert.deepEqual(resolveListenOptions({}), { host: '127.0.0.1', port: 8765 });
+  assert.deepEqual(resolveListenOptions({ SPECTRUMLINK_HOST: '0.0.0.0', SPECTRUMLINK_PORT: '9000' }), {
+    host: '0.0.0.0',
+    port: 9000,
+  });
+  assert.deepEqual(resolveListenOptions({ SPECTRUMLINK_HOST: 'bad host', SPECTRUMLINK_PORT: '99999' }), {
+    host: '127.0.0.1',
+    port: 8765,
+  });
+});
+
+test('health endpoint reports readiness without contacting an upstream service', async () => {
+  let calls = 0;
+  await withServer(async () => { calls += 1; }, async (base) => {
+    const response = await fetch(`${base}/healthz`);
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), { status: 'ok', service: 'spectrumlink' });
+    assert.equal(calls, 0);
+  });
+});
 
 test('aircraft API validates coordinates and radius before calling upstream', async () => {
   let calls = 0;
@@ -116,6 +141,20 @@ test('terrain tilejson keeps the browser on localhost and declares real terrariu
     assert.equal(body.tileSize, 512);
     assert.match(body.attribution, /Mapterhorn/);
     assert.equal(body.tiles[0], `${base}/api/terrain/{z}/{x}/{y}.webp`);
+  });
+});
+
+test('terrain tilejson honors a trusted HTTPS reverse proxy without mixed-content URLs', async () => {
+  await withServer(async () => { throw new Error('tilejson must be local'); }, async (base) => {
+    const response = await fetch(`${base}/api/terrain/tilejson.json`, {
+      headers: {
+        'x-forwarded-host': 'spectrum.lishuangtong.com',
+        'x-forwarded-proto': 'https',
+      },
+    });
+    assert.equal(response.status, 200);
+    const body = await response.json();
+    assert.equal(body.tiles[0], 'https://spectrum.lishuangtong.com/api/terrain/{z}/{x}/{y}.webp');
   });
 });
 

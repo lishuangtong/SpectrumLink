@@ -48,7 +48,7 @@ npm ci
 
 `xattr` 命令只应对从本项目官方 GitHub 仓库下载的特定 SpectrumLink 文件夹执行；不要对整个“下载”目录或用户目录执行。解除该文件夹的隔离标记后，以后可以直接双击 `start.command`。
 
-> 注意：Releases 中的 `SpectrumLink-v3.7.7.zip` 是安装到 K1 的 UV Studio 应用包；电脑端网页、本地服务和 `start.command` 位于 GitHub 自动生成的“源代码 ZIP”中。
+> 注意：Releases 中的 `SpectrumLink-v3.8.0.zip` 是安装到 K1 的 UV Studio 应用包；电脑端网页、本地服务和 `start.command` 位于 GitHub 自动生成的“源代码 ZIP”中。
 
 也可以打开右上角 **☰ 设置**，先点 **演示**，无需连接 K1 即可检查机械表、数字表、二维频谱、瀑布图和三维地形。
 

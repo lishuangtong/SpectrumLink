@@ -1,10 +1,10 @@
-# SpectrumLink v3.7.7
+# SpectrumLink v3.8.0
 
 把泉盛 UV-K1 / K1(8) 的 64 点 RSSI 扫描结果，变成适合横屏副显示器长期展示的本地无线电仪表台。
 
 SpectrumLink 由两部分组成：安装到 F4HWN Labs v6.3.0 的只接收应用，以及运行在电脑上的本地网页。K1 负责顺序扫描，电脑负责绘制实时频谱、SDR 风格瀑布图、三维历史、机械/数字 S 表和独立的网络 ADS-B 飞机雷达。
 
-> Designed by [鸽子TechLife](https://v.douyin.com/llSXBPzpKzI/) · Website [鸽子窝](https://www.lishuangtong.com) · Version `v3.7.7`
+> Designed by [鸽子TechLife](https://v.douyin.com/llSXBPzpKzI/) · Website [鸽子窝](https://www.lishuangtong.com) · Version `v3.8.0`
 
 ![SpectrumLink UV-K1 全景仪表台](docs/images/spectrumlink-dashboard.png)
 
@@ -48,7 +48,7 @@ npm run serve
 
 GitHub 自动生成的“源代码 ZIP”属于网络下载文件。macOS 会为其添加隔离标记，而 `start.command` 没有经过 Apple Developer ID 签名与公证，因此首次双击可能被 Gatekeeper 拦截。这不代表源代码已损坏。
 
-在终端输入 `cd `（`cd` 后保留一个空格），把解压后的 `SpectrumLink-3.7.7` 文件夹拖入终端，回车后执行：
+在终端输入 `cd `（`cd` 后保留一个空格），把解压后的 `SpectrumLink-3.8.0` 文件夹拖入终端，回车后执行：
 
 ```bash
 xattr -dr com.apple.quarantine .
@@ -59,7 +59,17 @@ npm ci
 
 只对从本项目官方 GitHub 仓库下载的特定文件夹执行上述 `xattr` 命令，不要对整个“下载”目录或用户目录执行。如果提示 `npm: command not found`，请先安装 Node.js 20 或更高版本。
 
-Releases 中的 `SpectrumLink-v3.7.7.zip` 仅包含用于 UV Studio 的 K1 端 `SpectrumLink.app`；要在电脑上运行网页仪表台，请下载并解压 GitHub 的“源代码 ZIP”。
+Releases 中的 `SpectrumLink-v3.8.0.zip` 仅包含用于 UV Studio 的 K1 端 `SpectrumLink.app`；要在电脑上运行网页仪表台，请下载并解压 GitHub 的“源代码 ZIP”。
+
+## 服务器与 NAS 一键部署
+
+SpectrumLink 提供 `linux/amd64` 和 `linux/arm64` 容器镜像，可部署到宝塔、群晖、威联通及普通 Linux 服务器。Docker 安装完成后执行：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/lishuangtong/SpectrumLink/v3.8.0/deploy/install.sh | bash
+```
+
+默认只在服务器本机的 `127.0.0.1:8765` 监听。在宝塔中将 HTTPS 二级域名反向代理到该地址后，即可通过网址使用。完整宝塔、NAS、HTTPS、更新与故障排查步骤见[服务器部署指南](docs/deploy-baota-nas.md)。
 
 不连接电台时，可在右上角菜单中启用“演示”检查界面。连接实机、安装应用、备份与恢复步骤见[中文安装与实机测试指南](docs/install-and-test-zh.md)。
 

@@ -1,6 +1,6 @@
 {
   "name": "spectrumlink",
-  "version": "3.7.7",
+  "version": "3.8.0",
   "description": "UV-K1/K1(8) 64-point RSSI spectrum dashboard with Web Serial, waterfall, 3D history and independent ADS-B visualization.",
   "private": true,
   "license": "GPL-2.0-or-later",
